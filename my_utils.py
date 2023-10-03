@@ -18,8 +18,8 @@ import matplotlib.pyplot as plt
 
 def get_NMIST_Dataloaders():
     frame_transform = transforms.Compose([transforms.Denoise(filter_time=c.filter_time),
-                                      transforms.ToFrame(sensor_size=c.sensor_size,
-                                                         time_window=c.time_window)
+                                        transforms.ToFrame(sensor_size=c.sensor_size,
+                                                           time_window=c.time_window)
                                      ])
     trainset = tonic.datasets.NMNIST(save_to='./data', 
                                      transform=frame_transform, 
@@ -74,13 +74,16 @@ def forward_pass(net, data):
   return torch.stack(spk_rec)
 
 
-def train_NMIST(trainloader, net, device):
-    loss_hist = []
-    acc_hist = []
+def train_NMIST(trainloader, testloader, net, device):
+    train_loss_hist = []
+    train_acc_hist = []
+    test_loss_hist = []
+    test_acc_hist = []
 
-    optimizer = torch.optim.Adam(net.parameters(), lr=c.lr, betas=(c.betas[0], c.betas[1]))
+    optimizer = torch.optim.Adam(net.parameters(), lr=c.lr, betas=(c.betas_Adam[0], c.betas_Adam[1]))
     loss_fn = SF.mse_count_loss(correct_rate=c.correct_rate, incorrect_rate=1-c.correct_rate)
 
+    count = 1
     # training loop
     for epoch in range(c.epochs):
         for i, (data, targets) in enumerate(iter(trainloader)):
@@ -95,26 +98,49 @@ def train_NMIST(trainloader, net, device):
             optimizer.zero_grad()
             loss_val.backward()
             optimizer.step()
+            with torch.no_grad():
+                total = 0
+                test_acc = 0
+                net.eval()
+                
+                testloader = iter(testloader)
+                count1 = 0
+                for data, targets in testloader:
+                    if count1 > 5:
+                        break
+                    data = data.to(device)
+                    targets = targets.to(device)
+                    spk_rec = forward_pass(net, data)
+                    test_acc += SF.accuracy_rate(spk_rec, targets) * spk_rec.size(1)
+                    total += spk_rec.size(1)
+                    count1 += 1
+                test_acc_hist.append(test_acc/total)
+                print(f"Test Accuracy: {test_acc/total * 100:.2f}%")
 
             # Store loss history for future plotting
-            loss_hist.append(loss_val.item())
+            # train_loss_hist.append(loss_val.item())
+            train_acc = SF.accuracy_rate(spk_rec, targets)
+            train_acc_hist.append(train_acc)
 
             print(f"Epoch {epoch}, Iteration {i} \nTrain Loss: {loss_val.item():.2f}")
+            print(f"Train Accuracy: {train_acc * 100:.2f}%\n")
 
-            acc = SF.accuracy_rate(spk_rec, targets)
-            acc_hist.append(acc)
-            print(f"Accuracy: {acc * 100:.2f}%\n")
-
+            count += 1
             # This will end training after 'num_iters' iterations by default
             if i == c.num_iters:
                 break
-    return acc_hist    
+
+    return train_acc_hist, test_acc_hist 
+
+
     
 
-def plot_loss_NMNIST(acc_hist):
+def plot_loss_NMNIST(train_acc, test_acc):
     fig = plt.figure(facecolor="w")
-    plt.plot(acc_hist)
-    plt.title("Train Set Accuracy")
+    plt.plot(train_acc, label='Train Acc', linestyle='-')
+    plt.plot(test_acc, label='Test Acc', linestyle='--')
+    plt.title("Train-Test Set Accuracy")
+    plt.legend()
     plt.xlabel("Iteration")
     plt.ylabel("Accuracy")
     plt.show()

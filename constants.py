@@ -15,7 +15,7 @@ class Net:
     classes = 10
 
 epochs = 1
-num_iters = 10
+num_iters = 5
 lr = 2e-2
 correct_rate = 0.8
-betas = [0.9, 0.999]
+betas_Adam = [0.9, 0.999]
