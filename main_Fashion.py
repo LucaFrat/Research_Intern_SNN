@@ -1,18 +1,19 @@
 import torch 
 import constants as c
-import my_utils as my_utils
+import my_utils
+import my_utils_Fashion 
 import time
 import random
 
 
-def main_NMIST():
-    random.seed(20)
-
+def main_Fashion():
+    random.seed(c.SEED)
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
-    trainloader, testloader = my_utils.get_NMIST_Dataloaders()
+    trainloader, testloader = my_utils_Fashion.get_Fashion_Dataloaders()
 
-    event_tensor, target = next(iter(trainloader))
+# FROM HERE
+    event_tensor = next(iter(trainloader))
     print(event_tensor.shape)
 
     net = my_utils.get_network(device=device)
@@ -29,5 +30,7 @@ def main_NMIST():
     print(f'Execution time: {(en-st)/60:.2f} min') 
 
 
+
+
 if __name__=="__main__":
-    main_NMIST()
+    main_Fashion()

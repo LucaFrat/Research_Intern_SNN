@@ -17,9 +17,9 @@ import matplotlib.pyplot as plt
 
 
 def get_NMIST_Dataloaders():
-    frame_transform = transforms.Compose([transforms.Denoise(filter_time=c.filter_time),
-                                        transforms.ToFrame(sensor_size=c.sensor_size,
-                                                           time_window=c.time_window)
+    frame_transform = transforms.Compose([transforms.Denoise(filter_time=c.FILTER_TIME),
+                                        transforms.ToFrame(sensor_size=c.SENSOR_SIZE,
+                                                           time_window=c.TIME_WINDOW)
                                      ])
     trainset = tonic.datasets.NMNIST(save_to='./data', 
                                      transform=frame_transform, 
@@ -28,7 +28,7 @@ def get_NMIST_Dataloaders():
                                     transform=frame_transform, 
                                     train=False)
     transform = tonic.transforms.Compose([torch.from_numpy,
-                                        torchvision.transforms.RandomRotation([-c.rRotation,c.rRotation])])
+                                        torchvision.transforms.RandomRotation([-c.ROTATION,c.ROTATION])])
     cached_trainset = DiskCachedDataset(trainset, 
                                         transform=transform, 
                                         cache_path='./cache/nmnist/train')
@@ -36,11 +36,11 @@ def get_NMIST_Dataloaders():
     cached_testset = DiskCachedDataset(testset, 
                                        cache_path='./cache/nmnist/test')
     trainloader = DataLoader(cached_trainset, 
-                             batch_size=c.batch_size, 
+                             batch_size=c.BATCH_SIZE, 
                              collate_fn=tonic.collation.PadTensors(batch_first=False), 
                              shuffle=True)
     testloader = DataLoader(cached_testset, 
-                            batch_size=c.batch_size, 
+                            batch_size=c.BATCH_SIZE, 
                             collate_fn=tonic.collation.PadTensors(batch_first=False))
 
     return trainloader, testloader
@@ -50,15 +50,15 @@ def get_network(device):
     spike_grad = surrogate.atan()
     params = c.Net()
     #  Initialize Network
-    net = nn.Sequential(nn.Conv2d(params.channels[0], params.channels[1], params.kernels[0]),
-                        snn.Leaky(beta=c.beta, spike_grad=spike_grad, init_hidden=True),
+    net = nn.Sequential(nn.Conv2d(params.CHANNELS[0], params.CHANNELS[1], params.KERNELS[0]),
+                        snn.Leaky(beta=c.BETA, spike_grad=spike_grad, init_hidden=True),
                         nn.MaxPool2d(2),
-                        nn.Conv2d(params.channels[1], params.channels[2], params.kernels[1]),
-                        snn.Leaky(beta=c.beta, spike_grad=spike_grad, init_hidden=True),
+                        nn.Conv2d(params.CHANNELS[1], params.CHANNELS[2], params.KERNELS[1]),
+                        snn.Leaky(beta=c.BETA, spike_grad=spike_grad, init_hidden=True),
                         nn.MaxPool2d(2),
                         nn.Flatten(),
-                        nn.Linear(params.channels[-1]*5*5, params.classes),
-                        snn.Leaky(beta=c.beta, spike_grad=spike_grad, init_hidden=True, output=True)
+                        nn.Linear(params.CHANNELS[-1]*5*5, params.CLASSES),
+                        snn.Leaky(beta=c.BETA, spike_grad=spike_grad, init_hidden=True, output=True)
                         ).to(device)
     return net
 
@@ -74,18 +74,18 @@ def forward_pass(net, data):
   return torch.stack(spk_rec)
 
 
-def train_NMIST(trainloader, testloader, net, device):
+def train(trainloader, testloader, net, device):
     train_loss_hist = []
     train_acc_hist = []
     test_loss_hist = []
     test_acc_hist = []
 
-    optimizer = torch.optim.Adam(net.parameters(), lr=c.lr, betas=(c.betas_Adam[0], c.betas_Adam[1]))
-    loss_fn = SF.mse_count_loss(correct_rate=c.correct_rate, incorrect_rate=1-c.correct_rate)
+    optimizer = torch.optim.Adam(net.parameters(), lr=c.LR, betas=(c.BETAS_ADAM[0], c.BETAS_ADAM[1]))
+    loss_fn = SF.mse_count_loss(correct_rate=c.CORRECT_RATE, incorrect_rate=1-c.CORRECT_RATE)
 
     count = 1
     # training loop
-    for epoch in range(c.epochs):
+    for epoch in range(c.EPOCHS):
         for i, (data, targets) in enumerate(iter(trainloader)):
             data = data.to(device)
             targets = targets.to(device)
@@ -127,15 +127,13 @@ def train_NMIST(trainloader, testloader, net, device):
 
             count += 1
             # This will end training after 'num_iters' iterations by default
-            if i == c.num_iters:
+            if i == c.NUM_ITERS:
                 break
 
     return train_acc_hist, test_acc_hist 
 
 
-    
-
-def plot_loss_NMNIST(train_acc, test_acc):
+def plot_loss(train_acc, test_acc):
     fig = plt.figure(facecolor="w")
     plt.plot(train_acc, label='Train Acc', linestyle='-')
     plt.plot(test_acc, label='Test Acc', linestyle='--')
