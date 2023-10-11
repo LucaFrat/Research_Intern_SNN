@@ -46,9 +46,9 @@ def get_NMIST_Dataloaders():
     return trainloader, testloader
 
 
-def get_network(device):
+def get_network(device, dataset:int=0):
     spike_grad = surrogate.atan()
-    params = c.Net()
+    params = [c.NMNIST_Net(), c.FashionMNIST_Net(), c.DVS_Net()][dataset]
     #  Initialize Network
     net = nn.Sequential(nn.Conv2d(params.CHANNELS[0], params.CHANNELS[1], params.KERNELS[0]),
                         snn.Leaky(beta=c.BETA, spike_grad=spike_grad, init_hidden=True),
@@ -57,7 +57,7 @@ def get_network(device):
                         snn.Leaky(beta=c.BETA, spike_grad=spike_grad, init_hidden=True),
                         nn.MaxPool2d(2),
                         nn.Flatten(),
-                        nn.Linear(params.CHANNELS[-1]*5*5, params.CLASSES),
+                        nn.Linear(params.CHANNELS[-1]*params.RES_DIM*params.RES_DIM, params.CLASSES),
                         snn.Leaky(beta=c.BETA, spike_grad=spike_grad, init_hidden=True, output=True)
                         ).to(device)
     return net
@@ -91,6 +91,7 @@ def train(trainloader, testloader, net, device):
             targets = targets.to(device)
 
             net.train()
+
             spk_rec = forward_pass(net, data)
             loss_val = loss_fn(spk_rec, targets)
 

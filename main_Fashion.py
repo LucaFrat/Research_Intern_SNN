@@ -8,24 +8,22 @@ import random
 
 def main_Fashion():
     random.seed(c.SEED)
+    torch.manual_seed(c.SEED)
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
-    trainloader, testloader = my_utils_Fashion.get_Fashion_Dataloaders()
-
-# FROM HERE
-    event_tensor = next(iter(trainloader))
-    print(event_tensor.shape)
-
-    net = my_utils.get_network(device=device)
+    train_loader, test_loader = my_utils_Fashion.get_Fashion_Dataloaders()
+    net = my_utils.get_network(device=device, dataset=1)
 
     st = time.time()
-    train_acc, test_acc = my_utils.train(trainloader=trainloader, 
-                                               testloader=testloader,
-                                               net=net,
-                                               device=device)
+    my_utils_Fashion.train(
+                        train_loader=train_loader, 
+                        test_loader=test_loader,
+                        net=net,
+                        device=device
+                        )
     en = time.time()
 
-    my_utils.plot_loss(train_acc=train_acc, test_acc=test_acc)
+    # my_utils.plot_loss(train_acc=train_acc, test_acc=test_acc)
 
     print(f'Execution time: {(en-st)/60:.2f} min') 
 
