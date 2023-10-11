@@ -11,6 +11,13 @@ BATCH_SIZE = 128
 NUM_STEP = 25
 BETA = 0.5
 
+EPOCHS = 3
+DTYPE = torch.float
+NUM_ITERS = 5
+LR = 2e-2
+CORRECT_RATE = 0.8
+BETAS_ADAM = [0.9, 0.999]
+
 
 class NMNIST_Net():
     CHANNELS = [2, 12, 32]
@@ -30,10 +37,3 @@ class DVS_Net():
     ResDim = 0
     CLASSES = 11 # DVS-Gesture has 11 classes
 
-
-EPOCHS = 3
-DTYPE = torch.float
-NUM_ITERS = 5
-LR = 2e-2
-CORRECT_RATE = 0.8
-BETAS_ADAM = [0.9, 0.999]

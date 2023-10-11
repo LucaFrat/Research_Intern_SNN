@@ -7,13 +7,10 @@ import random
 
 def main_NMIST():
     random.seed(20)
-
+    torch.manual_seed(c.SEED)
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
     trainloader, testloader = my_utils.get_NMIST_Dataloaders()
-
-    event_tensor, target = next(iter(trainloader))
-    print(event_tensor.shape)
 
     net = my_utils.get_network(device=device)
 

@@ -3,7 +3,6 @@ import torchvision
 import torchvision.transforms as transforms
 import tonic
 from torch.utils.data import DataLoader
-from tonic import DiskCachedDataset
 import numpy as np
 import constants as c
 import snntorch as snn
