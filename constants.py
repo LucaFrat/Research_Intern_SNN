@@ -1,6 +1,6 @@
 import tonic
 import torch
-from snntorch import functional as SF
+from snntorch import surrogate
 
 SEED = 20
 SENSOR_SIZE = tonic.datasets.NMNIST.sensor_size
@@ -8,15 +8,16 @@ FILTER_TIME = 10000
 TIME_WINDOW = 1000
 ROTATION = 10
 BATCH_SIZE = 128
-NUM_STEP = 25
+NUM_STEPS = 25
 BETA = 0.5
 
-EPOCHS = 3
+EPOCHS = 1
 DTYPE = torch.float
 NUM_ITERS = 5
 LR = 2e-2
 CORRECT_RATE = 0.8
 BETAS_ADAM = [0.9, 0.999]
+SPIKE_GRAD = surrogate.atan()
 
 
 class NMNIST_Net():

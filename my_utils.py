@@ -68,7 +68,7 @@ def forward_pass(net, data):
   utils.reset(net)  # resets hidden states for all LIF neurons in net
 
   for step in range(data.size(0)):  # data.size(0) = number of time steps
-      spk_out, mem_out = net(data[step])
+      spk_out, _ = net(data[step])
       spk_rec.append(spk_out)
 
   return torch.stack(spk_rec)
