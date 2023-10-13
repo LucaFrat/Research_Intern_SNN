@@ -1,7 +1,9 @@
 myrandom.py
 data/
 cache/
+Outputs/
 *.csv
+*.npy
 *.xlsx
 ##############
 

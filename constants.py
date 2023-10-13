@@ -11,7 +11,7 @@ BATCH_SIZE = 128
 NUM_STEPS = 25
 BETA = 0.5
 
-EPOCHS = 1
+EPOCHS = 20
 DTYPE = torch.float
 NUM_ITERS = 5
 LR = 2e-2
@@ -24,7 +24,7 @@ class NMNIST_Net():
     CHANNELS = [2, 12, 32]
     KERNELS = [5, 5]
     RES_DIM = 5
-    CLASSES = 10 # DVS-Gesture has 11 classes
+    CLASSES = 10 
 
 class FashionMNIST_Net():
     CHANNELS = [1, 4, 8]

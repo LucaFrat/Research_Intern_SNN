@@ -1,6 +1,6 @@
 import torch 
 import torchvision
-import torchvision.transforms as Ptransforms
+import torchvision.transforms as vtransforms
 import tonic
 import tonic.transforms as transforms
 from torch.utils.data import DataLoader
@@ -16,34 +16,32 @@ import matplotlib.pyplot as plt
 
 
 
-def get_NMIST_Dataloaders():
+def get_N_MNIST_Dataloaders():
+    data_path='./data/Nmnist'
     frame_transform = transforms.Compose([transforms.Denoise(filter_time=c.FILTER_TIME),
                                         transforms.ToFrame(sensor_size=c.SENSOR_SIZE,
                                                            time_window=c.TIME_WINDOW)
                                      ])
-    trainset = tonic.datasets.NMNIST(save_to='./data', 
-                                     transform=frame_transform, 
-                                     train=True)
-    testset = tonic.datasets.NMNIST(save_to='./data', 
-                                    transform=frame_transform, 
-                                    train=False)
+    NMNIST_train = tonic.datasets.NMNIST(save_to=data_path, transform=frame_transform, train=True)
+    NMNIST_test = tonic.datasets.NMNIST(save_to=data_path, transform=frame_transform, train=False)
     transform = tonic.transforms.Compose([torch.from_numpy,
-                                        torchvision.transforms.RandomRotation([-c.ROTATION,c.ROTATION])])
-    cached_trainset = DiskCachedDataset(trainset, 
-                                        transform=transform, 
-                                        cache_path='./cache/nmnist/train')
+                                        vtransforms.RandomRotation([-c.ROTATION,c.ROTATION]),
+                                        vtransforms.Resize((28, 28)),
+                                        vtransforms.Grayscale(),
+                                        vtransforms.ToTensor(),
+                                        vtransforms.Normalize((0,), (1,))
+                                        ])
+    cached_NMNIST_train = DiskCachedDataset(NMNIST_train, transform=transform, cache_path='./cache/Nmnist/train')
     # no augmentations for the testset
-    cached_testset = DiskCachedDataset(testset, 
-                                       cache_path='./cache/nmnist/test')
-    trainloader = DataLoader(cached_trainset, 
-                             batch_size=c.BATCH_SIZE, 
-                             collate_fn=tonic.collation.PadTensors(batch_first=False), 
-                             shuffle=True)
-    testloader = DataLoader(cached_testset, 
-                            batch_size=c.BATCH_SIZE, 
-                            collate_fn=tonic.collation.PadTensors(batch_first=False))
+    cached_NMNIST_test = DiskCachedDataset(NMNIST_test, cache_path='./cache/Nmnist/test')
+    train_loader = DataLoader(cached_NMNIST_train, batch_size=c.BATCH_SIZE, shuffle=True, drop_last=True, 
+                              collate_fn=tonic.collation.PadTensors(batch_first=False))
+    test_loader = DataLoader(cached_NMNIST_test, batch_size=c.BATCH_SIZE, shuffle=True, drop_last=True,
+                             collate_fn=tonic.collation.PadTensors(batch_first=False))
 
-    return trainloader, testloader
+    return train_loader, test_loader
+
+
 
 
 def get_network(device, dataset:int=0):
@@ -61,6 +59,8 @@ def get_network(device, dataset:int=0):
                         snn.Leaky(beta=c.BETA, spike_grad=spike_grad, init_hidden=True, output=True)
                         ).to(device)
     return net
+
+
 
 
 def forward_pass(net, data):
