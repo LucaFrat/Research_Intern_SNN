@@ -33,8 +33,8 @@ def get_Fashion_Dataloaders():
     fashion_train = torchvision.datasets.FashionMNIST(data_path, train=True, download=True, transform=transform)
     fashion_test = torchvision.datasets.FashionMNIST(data_path, train=False, download=True, transform=transform)
 
-    fashion_train = torch.utils.data.Subset(fashion_train, range(0, len(fashion_train), 20))
-    fashion_test = torch.utils.data.Subset(fashion_test, range(0, len(fashion_test), 20))
+    fashion_train = torch.utils.data.Subset(fashion_train, range(0, len(fashion_train), c.SUBSET))
+    fashion_test = torch.utils.data.Subset(fashion_test, range(0, len(fashion_test), c.SUBSET))
 
     train_loader = DataLoader(fashion_train, batch_size=c.BATCH_SIZE, shuffle=True, drop_last=True)
     test_loader = DataLoader(fashion_test, batch_size=c.BATCH_SIZE, shuffle=True, drop_last=True)
@@ -43,20 +43,20 @@ def get_Fashion_Dataloaders():
 
 
 
-# Define NetworK: Input layer - 2 onv+LIF layers with same dimensions - Output layer
+# Define NetworK: Input layer - 2 Conv+LIF layers - Output layer
 class Net(nn.Module):
-    def __init__(self, dataset:int=0):
+    def __init__(self, surrogate_func, dataset:int=0):
         super().__init__()
 
         params = [c.NMNIST_Net(), c.FashionMNIST_Net(), c.DVS_Net()][dataset]                        
 
         # Initialize layers
         self.conv1 = nn.Conv2d(params.CHANNELS[0], params.CHANNELS[1], params.KERNELS[0])
-        self.lif1 = snn.Leaky(beta=c.BETA, spike_grad=c.SPIKE_GRAD)
+        self.lif1 = snn.Leaky(beta=c.BETA, spike_grad=surrogate_func)
         self.conv2 = nn.Conv2d(params.CHANNELS[1], params.CHANNELS[2], params.KERNELS[1])
-        self.lif2 = snn.Leaky(beta=c.BETA, spike_grad=c.SPIKE_GRAD)
+        self.lif2 = snn.Leaky(beta=c.BETA, spike_grad=surrogate_func)
         self.fc1 = nn.Linear(params.CHANNELS[-1]*params.RES_DIM*params.RES_DIM, params.CLASSES)
-        self.lif3 = snn.Leaky(beta=c.BETA, spike_grad=c.SPIKE_GRAD)
+        self.lif3 = snn.Leaky(beta=c.BETA, spike_grad=surrogate_func)
 
     def forward(self, x):
         
@@ -70,6 +70,10 @@ class Net(nn.Module):
         spk2_rec = []
         spk_out_rec = []
 
+        mem1_rec = []
+        mem2_rec = []
+        mem_out_rec = []
+
         for step in range(x.size(0)):
             cur1 = F.max_pool2d(self.conv1(x[step]), 2)
             spk1, mem1 = self.lif1(cur1, mem1)
@@ -82,31 +86,36 @@ class Net(nn.Module):
             
             spk1_rec.append(spk1)
             spk2_rec.append(spk2)
-            spk_out_rec.append(spk_out)            
+            spk_out_rec.append(spk_out)  
+
+            mem1_rec.append(mem1)
+            mem2_rec.append(mem2)
+            mem_out_rec.append(mem3)          
                 
-        return torch.stack(spk1_rec), torch.stack(spk2_rec), torch.stack(spk_out_rec)
+        return torch.stack(spk1_rec), torch.stack(spk2_rec), torch.stack(spk_out_rec),\
+                torch.stack(mem1_rec), torch.stack(mem2_rec), torch.stack(mem_out_rec)
 
 
 
 
 
-def spike_count_neuron_wise(spk1, spk2, spk_out):
+def count_neuron_wise(in1, in2, in3):
     with torch.no_grad():
-        # tot number of spikes per neuron
+        # tot number of Spikes/Membrane_potential per neuron
         # sum over the 3 dimensions: num_steps, batch_size, channels 
-        tot_spk1 = spk1.mean(dim=0).mean(dim=0).sum(dim=0)
-        tot_spk2 = spk2.mean(dim=0).mean(dim=0).sum(dim=0)
-        tot_spk_out = spk_out.mean(dim=0).mean(dim=0)
-    return tot_spk1, tot_spk2, tot_spk_out
+        out1 = in1.mean(dim=0).mean(dim=0).mean(dim=0)
+        out2 = in2.mean(dim=0).mean(dim=0).mean(dim=0)
+        out3 = in3.mean(dim=0).mean(dim=0)
+    return out1, out2, out3
 
-def spike_count_layer_wise(spk1_nw, spk2_nw, spk_out_nw):
+def count_layer_wise(in1, in2, in3):
     with torch.no_grad():
-        # average probability of spike per each layer 
+        # average probability of Spike/Membrane_potential per layer 
         # (not neuron but layer wise)
-        tot_spk1 = spk1_nw.mean(dim=0).mean(dim=0)
-        tot_spk2 = spk2_nw.mean(dim=0).mean(dim=0)
-        tot_spk_out = spk_out_nw.mean(dim=0)
-    return tot_spk1, tot_spk2, tot_spk_out
+        out1 = in1.mean(dim=0).mean(dim=0)
+        out2 = in2.mean(dim=0).mean(dim=0)
+        out3 = in3.mean(dim=0)
+    return out1, out2, out3
 
 
 
@@ -128,6 +137,11 @@ def training(net, train_loader, test_loader, device):
     spk_layer2 = []
     spk_layer_out = []
     spk_tot_epochs = []
+
+    mem_layer1 = []
+    mem_layer2 = []
+    mem_layer_out = []
+    mem_tot_epochs = []
     
     #loss and optimizer
     loss_fn = SF.mse_count_loss(correct_rate=c.CORRECT_RATE, incorrect_rate=1-c.CORRECT_RATE)
@@ -137,7 +151,7 @@ def training(net, train_loader, test_loader, device):
     # Outer training loop
     for epoch in range(c.EPOCHS):
 
-        print(f"\nEpoch: {epoch}")
+        print(f"Epoch: {epoch}")
 
         for data, targets in iter(train_loader):
             data = spikegen.rate(data, num_steps=c.NUM_STEPS)
@@ -146,7 +160,7 @@ def training(net, train_loader, test_loader, device):
            
             # forward pass
             net.train()
-            spk1, spk2, spk_out = net(data)
+            spk1, spk2, spk_out, mem1, mem2, mem_out = net(data)
 
             # initialize the loss & sum over time
             loss_val = torch.zeros((1), dtype=c.DTYPE, device=device)
@@ -172,7 +186,7 @@ def training(net, train_loader, test_loader, device):
                 test_targets = test_targets.to(device)
 
                 # Test set forward pass
-                spk1_test, spk2_test, spk_out_test = net(test_data)
+                _, _, spk_out_test, _, _, _ = net(test_data)
 
                 # Test set loss 
                 test_loss = torch.zeros((1), dtype=c.DTYPE, device=device)
@@ -202,15 +216,25 @@ def training(net, train_loader, test_loader, device):
         del test_acc_epoch
 
         
-        #compute the total number of spikes for each neuron and layer
-        spk1_tot_nw, spk2_tot_nw, spk_out_tot_nw = spike_count_neuron_wise(spk1, spk2, spk_out)
-        spk1_tot_lw, spk2_tot_lw, spk_out_tot_lw = spike_count_layer_wise(spk1_tot_nw, spk2_tot_nw, spk_out_tot_nw)
+        # Compute the total number of spikes neuron and layer wise
+        spk1_tot_nw, spk2_tot_nw, spk_out_tot_nw = count_neuron_wise(spk1, spk2, spk_out)
+        spk1_tot_lw, spk2_tot_lw, spk_out_tot_lw = count_layer_wise(spk1_tot_nw, spk2_tot_nw, spk_out_tot_nw)
 
-        #Store the total number of spikes for each layer
+        # Compute the average membrane potential neuron and layer wise
+        mem1_tot_nw, mem2_tot_nw, mem_out_tot_nw = count_neuron_wise(mem1, mem2, mem_out)
+        mem1_tot_lw, mem2_tot_lw, mem_out_tot_lw = count_layer_wise(mem1_tot_nw, mem2_tot_nw, mem_out_tot_nw)
+
+        # Store the total number of spikes for each layer
         spk_layer1.append(spk1_tot_nw.cpu())
         spk_layer2.append(spk2_tot_nw.cpu())
         spk_layer_out.append(spk_out_tot_nw.cpu())
         spk_tot_epochs.append(np.array([spk1_tot_lw, spk2_tot_lw, spk_out_tot_lw]))
+
+        mem_layer1.append(mem1_tot_nw)
+        mem_layer2.append(mem2_tot_nw)
+        mem_layer_out.append(mem_out_tot_nw)
+        mem_tot_epochs.append(np.array([mem1_tot_lw, mem2_tot_lw, mem_out_tot_lw]))
  
     return loss_epoch_hist, test_loss_epoch_hist, acc_epoch_hist, test_acc_epoch_hist,\
-            spk_layer1, spk_layer2, spk_layer_out, np.array(spk_tot_epochs)
+            spk_layer1, spk_layer2, spk_layer_out, np.array(spk_tot_epochs), \
+            mem_layer1, mem_layer2, mem_layer_out, np.array(mem_tot_epochs)
