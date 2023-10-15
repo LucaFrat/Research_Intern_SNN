@@ -12,13 +12,13 @@ BATCH_SIZE = 128
 NUM_STEPS = 25
 BETA = 0.5
 
-EPOCHS = 30
+EPOCHS = 200
 DTYPE = torch.float
 NUM_ITERS = 5
 LR = 5e-2
 CORRECT_RATE = 0.8
 BETAS_ADAM = [0.9, 0.999]
-SPIKE_GRAD = [surrogate.fast_sigmoid(slope=25), surrogate.atan(), surrogate.sigmoid(slope=25)]
+SPIKE_GRADS = [surrogate.atan()]#, surrogate.sigmoid(slope=25), surrogate.fast_sigmoid(slope=25)]
             # surrogate.heaviside(),
             # surrogate.SFS(slope=25), surrogate.LSO(slope=0.1), 
             # surrogate.SSO(), surrogate.spike_rate_escape(beta=1),
