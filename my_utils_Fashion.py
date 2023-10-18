@@ -123,10 +123,10 @@ def count_layer_wise(in1, in2, in3):
 
 def training(net, train_loader, test_loader, device):
     
-    loss_hist = []
-    loss_epoch_hist=[]
-    acc_hist = []
-    acc_epoch_hist=[]
+    train_loss_hist = []
+    train_loss_epoch_hist=[]
+    train_acc_hist = []
+    train_acc_epoch_hist=[]
     
     test_loss_hist = []
     test_loss_epoch_hist=[]
@@ -174,9 +174,9 @@ def training(net, train_loader, test_loader, device):
             # scheduler.step()
           
             # Store loss and accuracy history for future plotting
-            loss_hist.append(loss_val.item())
-            acc = SF.accuracy_rate(spk_out, targets)
-            acc_hist.append(acc)
+            train_loss_hist.append(loss_val.item())
+            train_acc = SF.accuracy_rate(spk_out, targets)
+            train_acc_hist.append(train_acc)
             
             #Test set   
             with torch.no_grad():
@@ -200,18 +200,18 @@ def training(net, train_loader, test_loader, device):
                 test_acc_hist.append(test_acc)
 
 	
-        loss_epoch = np.mean(loss_hist)
-        acc_epoch = np.mean(acc_hist)
+        train_loss_epoch = np.mean(train_loss_hist)
+        train_acc_epoch = np.mean(train_acc_hist)
         test_loss_epoch = np.mean(test_loss_hist)
         test_acc_epoch = np.mean(test_acc_hist)
         
-        loss_epoch_hist.append(loss_epoch)
-        acc_epoch_hist.append(acc_epoch)
+        train_loss_epoch_hist.append(train_loss_epoch)
+        train_acc_epoch_hist.append(train_acc_epoch)
         test_loss_epoch_hist.append(test_loss_epoch)
         test_acc_epoch_hist.append(test_acc_epoch)
 
-        del acc_epoch
-        del loss_epoch
+        del train_acc_epoch
+        del train_loss_epoch
         del test_loss_epoch
         del test_acc_epoch
 
@@ -235,6 +235,6 @@ def training(net, train_loader, test_loader, device):
         mem_layer_out.append(mem_out_tot_nw)
         mem_tot_epochs.append(np.array([mem1_tot_lw, mem2_tot_lw, mem_out_tot_lw]))
  
-    return loss_epoch_hist, test_loss_epoch_hist, acc_epoch_hist, test_acc_epoch_hist,\
+    return train_loss_epoch_hist, test_loss_epoch_hist, train_acc_epoch_hist, test_acc_epoch_hist,\
             spk_layer1, spk_layer2, spk_layer_out, np.array(spk_tot_epochs), \
             mem_layer1, mem_layer2, mem_layer_out, np.array(mem_tot_epochs)
