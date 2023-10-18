@@ -2,6 +2,7 @@ myrandom.py
 data/
 cache/
 Outputs/
+Outs_Check_Training_Order/
 *.csv
 *.npy
 *.xlsx

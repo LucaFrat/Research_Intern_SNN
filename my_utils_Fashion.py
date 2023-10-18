@@ -45,18 +45,18 @@ def get_Fashion_Dataloaders():
 
 # Define NetworK: Input layer - 2 Conv+LIF layers - Output layer
 class Net(nn.Module):
-    def __init__(self, surrogate_func, dataset:int=0):
+    def __init__(self, surr_func, dataset:int=0):
         super().__init__()
 
         params = [c.NMNIST_Net(), c.FashionMNIST_Net(), c.DVS_Net()][dataset]                        
 
         # Initialize layers
         self.conv1 = nn.Conv2d(params.CHANNELS[0], params.CHANNELS[1], params.KERNELS[0])
-        self.lif1 = snn.Leaky(beta=c.BETA, spike_grad=surrogate_func)
+        self.lif1 = snn.Leaky(beta=c.BETA, spike_grad=surr_func)
         self.conv2 = nn.Conv2d(params.CHANNELS[1], params.CHANNELS[2], params.KERNELS[1])
-        self.lif2 = snn.Leaky(beta=c.BETA, spike_grad=surrogate_func)
+        self.lif2 = snn.Leaky(beta=c.BETA, spike_grad=surr_func)
         self.fc1 = nn.Linear(params.CHANNELS[-1]*params.RES_DIM*params.RES_DIM, params.CLASSES)
-        self.lif3 = snn.Leaky(beta=c.BETA, spike_grad=surrogate_func)
+        self.lif3 = snn.Leaky(beta=c.BETA, spike_grad=surr_func)
 
     def forward(self, x):
         

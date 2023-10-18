@@ -12,18 +12,18 @@ BATCH_SIZE = 128
 NUM_STEPS = 25
 BETA = 0.8
 
-EPOCHS = 75
+EPOCHS = 30
 DTYPE = torch.float
 NUM_ITERS = 5
 LR = 5e-2
 CORRECT_RATE = 0.8
 BETAS_ADAM = [0.9, 0.999]
-SURR_FUNCTIONS = ['Atan', 'Sigmoid']
-SPIKE_GRADS = [surrogate.atan(alpha=2), surrogate.sigmoid(slope=25)]#, surrogate.fast_sigmoid(slope=25)]
-            # surrogate.heaviside(),
+SURR_NAMES = ['Atan', 'Triangular']
+SURR_FUNCTIONS = [surrogate.atan(alpha=4), surrogate.triangular()]
+            # surrogate.heaviside(), surrogate.sigmoid(slope=25), surrogate.fast_sigmoid(slope=25)]
             # surrogate.SFS(slope=25), surrogate.LSO(slope=0.1), 
             # surrogate.SSO(), surrogate.spike_rate_escape(beta=1),
-            # surrogate.straight_through_estimator(), surrogate.triangular()]
+            # surrogate.straight_through_estimator()]
 
 
 class NMNIST_Net():
@@ -33,7 +33,7 @@ class NMNIST_Net():
     CLASSES = 10 
 
 class FashionMNIST_Net():
-    CHANNELS = [1, 4, 8]
+    CHANNELS = [1, 3, 6]
     KERNELS = [5, 3]
     RES_DIM = 5
     CLASSES = 10 
