@@ -48,7 +48,7 @@ class Net(nn.Module):
     def __init__(self, surr_func, beta, dataset:int=0):
         super().__init__()
 
-        params = [c.NMNIST_Net(), c.FashionMNIST_Net(), c.DVS_Net()][dataset]                        
+        params = [c.NMNIST_Net(), c.FashionMNIST_Net()][dataset]                        
 
         # Initialize layers
         self.conv1 = nn.Conv2d(params.CHANNELS[0], params.CHANNELS[1], params.KERNELS[0])

@@ -12,7 +12,7 @@ BATCH_SIZE = 128
 NUM_STEPS = 25
 BETA = 0.2
 
-EPOCHS = 20
+EPOCHS = 150
 DTYPE = torch.float
 NUM_ITERS = 5
 LR = 4e-2
