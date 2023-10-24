@@ -3,6 +3,7 @@ data/
 cache/
 Outputs/
 Outs_Check_Training_Order/
+Accuracy_vs_Sparsity/
 *.csv
 *.npy
 *.xlsx

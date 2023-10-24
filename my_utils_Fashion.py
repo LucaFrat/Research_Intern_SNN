@@ -45,18 +45,18 @@ def get_Fashion_Dataloaders():
 
 # Define NetworK: Input layer - 2 Conv+LIF layers - Output layer
 class Net(nn.Module):
-    def __init__(self, surr_func, dataset:int=0):
+    def __init__(self, surr_func, beta, dataset:int=0):
         super().__init__()
 
         params = [c.NMNIST_Net(), c.FashionMNIST_Net(), c.DVS_Net()][dataset]                        
 
         # Initialize layers
         self.conv1 = nn.Conv2d(params.CHANNELS[0], params.CHANNELS[1], params.KERNELS[0])
-        self.lif1 = snn.Leaky(beta=c.BETA, spike_grad=surr_func)
+        self.lif1 = snn.Leaky(beta=beta, spike_grad=surr_func)
         self.conv2 = nn.Conv2d(params.CHANNELS[1], params.CHANNELS[2], params.KERNELS[1])
-        self.lif2 = snn.Leaky(beta=c.BETA, spike_grad=surr_func)
+        self.lif2 = snn.Leaky(beta=beta, spike_grad=surr_func)
         self.fc1 = nn.Linear(params.CHANNELS[-1]*params.RES_DIM*params.RES_DIM, params.CLASSES)
-        self.lif3 = snn.Leaky(beta=c.BETA, spike_grad=surr_func)
+        self.lif3 = snn.Leaky(beta=beta, spike_grad=surr_func)
 
     def forward(self, x):
         
@@ -123,13 +123,9 @@ def count_layer_wise(in1, in2, in3):
 
 def training(net, train_loader, test_loader, device):
     
-    train_loss_hist = []
-    train_loss_epoch_hist=[]
     train_acc_hist = []
     train_acc_epoch_hist=[]
     
-    test_loss_hist = []
-    test_loss_epoch_hist=[]
     test_acc_hist = []
     test_acc_epoch_hist=[]
 
@@ -146,7 +142,7 @@ def training(net, train_loader, test_loader, device):
     #loss and optimizer
     loss_fn = SF.mse_count_loss(correct_rate=c.CORRECT_RATE, incorrect_rate=1-c.CORRECT_RATE)
     optimizer = torch.optim.Adam(net.parameters(), lr=c.LR, betas=(c.BETAS_ADAM[0], c.BETAS_ADAM[1]))
-    # scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=10)
+    scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=10)
 
     # Outer training loop
     for epoch in range(c.EPOCHS):
@@ -171,10 +167,9 @@ def training(net, train_loader, test_loader, device):
             optimizer.zero_grad()
             loss_val.backward()
             optimizer.step()
-            # scheduler.step()
+            scheduler.step()
           
             # Store loss and accuracy history for future plotting
-            train_loss_hist.append(loss_val.item())
             train_acc = SF.accuracy_rate(spk_out, targets)
             train_acc_hist.append(train_acc)
             
@@ -193,26 +188,18 @@ def training(net, train_loader, test_loader, device):
                 for _ in range(c.NUM_STEPS):
                     test_loss += loss_fn(spk_out_test, test_targets) 
 
-                test_loss_hist.append(test_loss.item())
-
                 #test set accuracy
                 test_acc = SF.accuracy_rate(spk_out_test, test_targets)
                 test_acc_hist.append(test_acc)
 
 	
-        train_loss_epoch = np.mean(train_loss_hist)
         train_acc_epoch = np.mean(train_acc_hist)
-        test_loss_epoch = np.mean(test_loss_hist)
         test_acc_epoch = np.mean(test_acc_hist)
         
-        train_loss_epoch_hist.append(train_loss_epoch)
         train_acc_epoch_hist.append(train_acc_epoch)
-        test_loss_epoch_hist.append(test_loss_epoch)
         test_acc_epoch_hist.append(test_acc_epoch)
 
         del train_acc_epoch
-        del train_loss_epoch
-        del test_loss_epoch
         del test_acc_epoch
 
         
@@ -235,6 +222,6 @@ def training(net, train_loader, test_loader, device):
         mem_layer_out.append(mem_out_tot_nw)
         mem_tot_epochs.append(np.array([mem1_tot_lw, mem2_tot_lw, mem_out_tot_lw]))
  
-    return train_loss_epoch_hist, test_loss_epoch_hist, train_acc_epoch_hist, test_acc_epoch_hist,\
+    return train_acc_epoch_hist, test_acc_epoch_hist,\
             spk_layer1, spk_layer2, spk_layer_out, np.array(spk_tot_epochs), \
             mem_layer1, mem_layer2, mem_layer_out, np.array(mem_tot_epochs)
