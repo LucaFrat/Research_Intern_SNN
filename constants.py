@@ -10,16 +10,16 @@ TIME_WINDOW = 1000
 ROTATION = 10
 BATCH_SIZE = 128
 NUM_STEPS = 25
-BETA = 0.8
+BETA = 0.6
 
-EPOCHS = 30
+EPOCHS = 20
 DTYPE = torch.float
 NUM_ITERS = 5
-LR = 5e-2
+LR = 2e-2
 CORRECT_RATE = 0.8
 BETAS_ADAM = [0.9, 0.999]
 SURR_NAMES = ['Atan', 'Triangular']
-SURR_FUNCTIONS = [surrogate.atan(alpha=4), surrogate.triangular()]
+SURR_FUNCTIONS = [surrogate.atan(alpha=2), surrogate.triangular()]
             # surrogate.heaviside(), surrogate.sigmoid(slope=25), surrogate.fast_sigmoid(slope=25)]
             # surrogate.SFS(slope=25), surrogate.LSO(slope=0.1), 
             # surrogate.SSO(), surrogate.spike_rate_escape(beta=1),
