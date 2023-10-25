@@ -148,7 +148,8 @@ def training(net, train_loader, test_loader, device):
     # Outer training loop
     for epoch in range(c.EPOCHS):
 
-        # print(f"Epoch: {epoch}")
+        if epoch%50 == 0:
+            print(f"Epoch: {epoch}")
 
         for data, targets in iter(train_loader):
             data = spikegen.rate(data, num_steps=c.NUM_STEPS)

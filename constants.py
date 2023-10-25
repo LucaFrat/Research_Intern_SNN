@@ -3,7 +3,7 @@ import torch
 from snntorch import surrogate
 
 BETA = 0.93
-EPOCHS = 2
+EPOCHS = 250
 LR = 2e-2
 
 SURR_NAMES = ['Atan', 'Sigmoid', 'FastSigm']
@@ -14,7 +14,6 @@ def get_surrogate_function(index: int, coeff):
             surrogate.sigmoid(slope=coeff),\
             surrogate.fast_sigmoid(slope=coeff)][index]
 
-# SURR_FUNCTIONS = [surrogate.atan(alpha=), surrogate.sigmoid(slope=25), surrogate.fast_sigmoid(slope=25)]
 
 SEED = 20
 # divide the size of the original dataset by SUBSET

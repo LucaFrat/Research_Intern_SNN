@@ -45,7 +45,6 @@ def main_Fashion():
             spks_3.append(np.array(output[4]))                
 
 
-
         # Save data into .npy files
         np.save(f'Diff_Surrogates/Accs_{surr_name}.npy', np.array(accuracies)) 
         np.save(f'Diff_Surrogates/Spks_{surr_name}_layer1.npy', np.array(spks_1))
