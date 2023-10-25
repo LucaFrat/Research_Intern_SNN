@@ -45,18 +45,19 @@ def get_Fashion_Dataloaders():
 
 # Define NetworK: Input layer - 2 Conv+LIF layers - Output layer
 class Net(nn.Module):
-    def __init__(self, surr_func, beta, dataset:int=0):
+    def __init__(self, surr_info):
         super().__init__()
 
-        params = [c.NMNIST_Net(), c.FashionMNIST_Net()][dataset]                        
+        params = c.FashionMNIST_Net()
+        surr_func = c.get_surrogate_function(*surr_info)
 
         # Initialize layers
         self.conv1 = nn.Conv2d(params.CHANNELS[0], params.CHANNELS[1], params.KERNELS[0])
-        self.lif1 = snn.Leaky(beta=beta, spike_grad=surr_func)
+        self.lif1 = snn.Leaky(beta=c.BETA, spike_grad=surr_func)
         self.conv2 = nn.Conv2d(params.CHANNELS[1], params.CHANNELS[2], params.KERNELS[1])
-        self.lif2 = snn.Leaky(beta=beta, spike_grad=surr_func)
+        self.lif2 = snn.Leaky(beta=c.BETA, spike_grad=surr_func)
         self.fc1 = nn.Linear(params.CHANNELS[-1]*params.RES_DIM*params.RES_DIM, params.CLASSES)
-        self.lif3 = snn.Leaky(beta=beta, spike_grad=surr_func)
+        self.lif3 = snn.Leaky(beta=c.BETA, spike_grad=surr_func)
 
     def forward(self, x):
         
@@ -147,7 +148,7 @@ def training(net, train_loader, test_loader, device):
     # Outer training loop
     for epoch in range(c.EPOCHS):
 
-        print(f"Epoch: {epoch}")
+        # print(f"Epoch: {epoch}")
 
         for data, targets in iter(train_loader):
             data = spikegen.rate(data, num_steps=c.NUM_STEPS)
@@ -212,9 +213,9 @@ def training(net, train_loader, test_loader, device):
         mem1_tot_lw, mem2_tot_lw, mem_out_tot_lw = count_layer_wise(mem1_tot_nw, mem2_tot_nw, mem_out_tot_nw)
 
         # Store the total number of spikes for each layer
-        spk_layer1.append(spk1_tot_nw.cpu())
-        spk_layer2.append(spk2_tot_nw.cpu())
-        spk_layer_out.append(spk_out_tot_nw.cpu())
+        spk_layer1.append(spk1_tot_nw)
+        spk_layer2.append(spk2_tot_nw)
+        spk_layer_out.append(spk_out_tot_nw)
         spk_tot_epochs.append(np.array([spk1_tot_lw, spk2_tot_lw, spk_out_tot_lw]))
 
         mem_layer1.append(mem1_tot_nw)
@@ -223,5 +224,5 @@ def training(net, train_loader, test_loader, device):
         mem_tot_epochs.append(np.array([mem1_tot_lw, mem2_tot_lw, mem_out_tot_lw]))
  
     return train_acc_epoch_hist, test_acc_epoch_hist,\
-            spk_layer1, spk_layer2, spk_layer_out, np.array(spk_tot_epochs), \
-            mem_layer1, mem_layer2, mem_layer_out, np.array(mem_tot_epochs)
+            spk_layer1, spk_layer2, spk_layer_out, spk_tot_epochs, \
+            mem_layer1, mem_layer2, mem_layer_out, mem_tot_epochs

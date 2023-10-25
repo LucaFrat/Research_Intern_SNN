@@ -4,6 +4,7 @@ cache/
 Outputs/
 Outs_Check_Training_Order/
 Accuracy_vs_Sparsity/
+Diff_Surrogates/
 *.csv
 *.npy
 *.xlsx
