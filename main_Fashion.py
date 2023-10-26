@@ -19,9 +19,7 @@ def main_Fashion():
         train_loader, test_loader = my_utils_Fashion.get_Fashion_Dataloaders()
         
         accuracies = []
-        spks_1 = []
-        spks_2 = []
-        spks_3 = []
+        spks = []
 
         # loop over the slopes of each surrogate function
         for j in range(len(c.SURR_SLOPES[surr_name])):    
@@ -40,18 +38,14 @@ def main_Fashion():
             spks_tot.append(spks_tot_new)
 
             accuracies.append(np.array([output[:2]]))
-            spks_1.append(np.array(output[2]))
-            spks_2.append(np.array(output[3]))
-            spks_3.append(np.array(output[4]))                
+            spks.append(np.array(output[5]))                
 
 
         # Save data into .npy files
-        np.save(f'Diff_Surrogates/Accs_{surr_name}.npy', np.array(accuracies)) 
-        np.save(f'Diff_Surrogates/Spks_{surr_name}_layer1.npy', np.array(spks_1))
-        np.save(f'Diff_Surrogates/Spks_{surr_name}_layer2.npy', np.array(spks_2))
-        np.save(f'Diff_Surrogates/Spks_{surr_name}_layer3.npy', np.array(spks_3))
+        np.save(f'2_Surrogates/Accs_{surr_name}.npy', np.array(accuracies)) 
+        np.save(f'2_Surrogates/Spks_layers_{surr_name}.npy', np.array(spks))
 
-    np.save(f'Diff_Surrogates/Spks_tot_overall.npy', spks_tot)
+    np.save(f'2_Surrogates/Spks_tot_overall.npy', spks_tot)
 
 
     en = time.time()

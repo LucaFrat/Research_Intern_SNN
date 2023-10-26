@@ -2,22 +2,20 @@ import tonic
 import torch
 from snntorch import surrogate
 
-BETA = 0.93
-EPOCHS = 250
-LR = 2e-2
+BETA = 0.9
+EPOCHS = 400
+SUBSET = 10 
 
-SURR_NAMES = ['Atan', 'Sigmoid', 'FastSigm']
-SURR_SLOPES = {'Atan': [1, 4, 7], 'Sigmoid': [4, 6, 8], 'FastSigm': [0.5, 0.7, 0.9]}
+SURR_NAMES = ['Atan', 'FastSigm']
+SURR_SLOPES = {'Atan': [1, 4, 7], 'FastSigm': [0.5, 0.7, 0.9]}
 
 def get_surrogate_function(index: int, coeff):
     return [surrogate.atan(alpha=coeff),\
-            surrogate.sigmoid(slope=coeff),\
             surrogate.fast_sigmoid(slope=coeff)][index]
 
-
+LR = 2e-2
 SEED = 20
 # divide the size of the original dataset by SUBSET
-SUBSET = 20 
 SENSOR_SIZE = tonic.datasets.NMNIST.sensor_size
 FILTER_TIME = 10000
 TIME_WINDOW = 1000

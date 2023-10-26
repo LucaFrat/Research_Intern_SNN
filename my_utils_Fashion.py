@@ -143,7 +143,7 @@ def training(net, train_loader, test_loader, device):
     #loss and optimizer
     loss_fn = SF.mse_count_loss(correct_rate=c.CORRECT_RATE, incorrect_rate=1-c.CORRECT_RATE)
     optimizer = torch.optim.Adam(net.parameters(), lr=c.LR, betas=(c.BETAS_ADAM[0], c.BETAS_ADAM[1]))
-    scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=10)
+    # scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=10)
 
     # Outer training loop
     for epoch in range(c.EPOCHS):
@@ -169,7 +169,7 @@ def training(net, train_loader, test_loader, device):
             optimizer.zero_grad()
             loss_val.backward()
             optimizer.step()
-            scheduler.step()
+            # scheduler.step()
           
             # Store loss and accuracy history for future plotting
             train_acc = SF.accuracy_rate(spk_out, targets)
