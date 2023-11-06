@@ -96,6 +96,57 @@ class Net(nn.Module):
         return torch.stack(spk1_rec), torch.stack(spk2_rec), torch.stack(spk_out_rec),\
                 torch.stack(mem1_rec), torch.stack(mem2_rec), torch.stack(mem_out_rec)
 
+class Net2(nn.Module):
+    def __init__(self, surr_info):
+        super().__init__()
+
+        params = c.FashionMNIST_Net()
+        surr_func = c.get_surrogate_function(*surr_info)
+
+        # Initialize layers
+        self.conv1 = nn.Conv2d(params.CHANNELS[0], params.CHANNELS[1], params.KERNELS[0])
+        self.lif1 = snn.Leaky(beta=surr_info[1], spike_grad=surr_func)
+        self.conv2 = nn.Conv2d(params.CHANNELS[1], params.CHANNELS[2], params.KERNELS[1])
+        self.lif2 = snn.Leaky(beta=surr_info[1], spike_grad=surr_func)
+        self.fc1 = nn.Linear(params.CHANNELS[-1]*params.RES_DIM*params.RES_DIM, params.CLASSES)
+        self.lif3 = snn.Leaky(beta=surr_info[1], spike_grad=surr_func)
+
+    def forward(self, x):
+        
+        # Initialize hidden states and outputs at t=0
+        mem1 = self.lif1.init_leaky()
+        mem2 = self.lif2.init_leaky()
+        mem3 = self.lif3.init_leaky()  
+        
+        # Record the LIF layers
+        spk1_rec = []
+        spk2_rec = []
+        spk_out_rec = []
+
+        mem1_rec = []
+        mem2_rec = []
+        mem_out_rec = []
+
+        for step in range(x.size(0)):
+            cur1 = F.max_pool2d(self.conv1(x[step]), 2)
+            spk1, mem1 = self.lif1(cur1, mem1)
+            
+            cur2 = F.max_pool2d(self.conv2(spk1), 2)
+            spk2, mem2 = self.lif2(cur2, mem2)
+
+            cur3 = self.fc1(spk2.view(c.BATCH_SIZE, -1))
+            spk_out, mem3 = self.lif3(cur3, mem3)
+            
+            spk1_rec.append(spk1)
+            spk2_rec.append(spk2)
+            spk_out_rec.append(spk_out)  
+
+            mem1_rec.append(mem1)
+            mem2_rec.append(mem2)
+            mem_out_rec.append(mem3)          
+                
+        return torch.stack(spk1_rec), torch.stack(spk2_rec), torch.stack(spk_out_rec),\
+                torch.stack(mem1_rec), torch.stack(mem2_rec), torch.stack(mem_out_rec)
 
 
 

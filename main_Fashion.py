@@ -10,16 +10,20 @@ def main_Fashion():
     device = my_utils_Fashion.set_seed_and_find_device()    
     st = time.time()
 
-
+    spks = []
     spks_tot = []
+    acc_tot = []
+    pot_tot = [] 
     # loop over the surrogate functions
     for index, surr_name in enumerate(c.SURR_NAMES):
         
         print(f'\nSurrogate: {c.SURR_NAMES[index]}\n')
         train_loader, test_loader = my_utils_Fashion.get_Fashion_Dataloaders()
         
+        spks_loop = []
+        spks_loop_tot = []
         accuracies = []
-        spks = []
+        potentials = []
 
         # loop over the slopes of each surrogate function
         for j in range(len(c.SURR_SLOPES[surr_name])):    
@@ -35,17 +39,23 @@ def main_Fashion():
             
             # compute the mean over the last 75 epochs for the tot prob of spike
             spks_tot_new = np.mean(np.array(output[5])[-75:-1])
-            spks_tot.append(spks_tot_new)
 
+            spks_loop.append(np.array(output[5]))                
+            spks_loop_tot.append(spks_tot_new)
             accuracies.append(np.array([output[:2]]))
-            spks.append(np.array(output[5]))                
+            potentials.append(np.array([output[-1]]))
+
+        spks.append(spks_loop)
+        spks_tot.append(spks_loop_tot)
+        acc_tot.append(accuracies)
+        pot_tot.append(potentials)
 
 
-        # Save data into .npy files
-        np.save(f'2_Surrogates/Accs_{surr_name}.npy', np.array(accuracies)) 
-        np.save(f'2_Surrogates/Spks_layers_{surr_name}.npy', np.array(spks))
-
-    np.save(f'2_Surrogates/Spks_tot_overall.npy', spks_tot)
+    # Save data into .npy files
+    np.save(f'Diff_Surrogates/Spks_layers.npy', np.array(spks))
+    np.save(f'Diff_Surrogates/Spks_tot_overall.npy', spks_tot)
+    np.save(f'Diff_Surrogates/Accs.npy', np.array(acc_tot)) 
+    np.save(f'Diff_Surrogates/Potential.npy', np.array(pot_tot)) 
 
 
     en = time.time()
