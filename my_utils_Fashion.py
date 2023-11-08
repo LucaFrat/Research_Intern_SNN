@@ -45,11 +45,11 @@ def get_Fashion_Dataloaders():
 
 # Define NetworK: Input layer - 2 Conv+LIF layers - Output layer
 class Net(nn.Module):
-    def __init__(self, surr_info):
+    def __init__(self, index, coeff):
         super().__init__()
 
         params = c.FashionMNIST_Net()
-        surr_func = c.get_surrogate_function(*surr_info)
+        surr_func = c.get_surrogate_function(index, coeff)
 
         # Initialize layers
         self.conv1 = nn.Conv2d(params.CHANNELS[0], params.CHANNELS[1], params.KERNELS[0])
@@ -97,19 +97,19 @@ class Net(nn.Module):
                 torch.stack(mem1_rec), torch.stack(mem2_rec), torch.stack(mem_out_rec)
 
 class Net2(nn.Module):
-    def __init__(self, surr_info):
+    def __init__(self, index, beta):
         super().__init__()
 
         params = c.FashionMNIST_Net()
-        surr_func = c.get_surrogate_function(*surr_info)
+        surr_func = c.get_surrogate_function(index, c.SLOPES_FOR_BETAS[index])
 
         # Initialize layers
         self.conv1 = nn.Conv2d(params.CHANNELS[0], params.CHANNELS[1], params.KERNELS[0])
-        self.lif1 = snn.Leaky(beta=surr_info[1], spike_grad=surr_func)
+        self.lif1 = snn.Leaky(beta=beta, spike_grad=surr_func)
         self.conv2 = nn.Conv2d(params.CHANNELS[1], params.CHANNELS[2], params.KERNELS[1])
-        self.lif2 = snn.Leaky(beta=surr_info[1], spike_grad=surr_func)
+        self.lif2 = snn.Leaky(beta=beta, spike_grad=surr_func)
         self.fc1 = nn.Linear(params.CHANNELS[-1]*params.RES_DIM*params.RES_DIM, params.CLASSES)
-        self.lif3 = snn.Leaky(beta=surr_info[1], spike_grad=surr_func)
+        self.lif3 = snn.Leaky(beta=beta, spike_grad=surr_func)
 
     def forward(self, x):
         
