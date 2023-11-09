@@ -48,7 +48,7 @@ def main_Fashion_betas():
 
 
 
-def main_Fashion():
+def main_Fashion_surr_coeff():
 
     device = my_utils_Fashion.set_seed_and_find_device()    
     st = time.time()
@@ -107,4 +107,4 @@ def main_Fashion():
 
 
 if __name__ == '__main__':
-    main_Fashion()
+    main_Fashion_surr_coeff()
