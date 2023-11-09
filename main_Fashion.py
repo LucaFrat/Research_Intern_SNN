@@ -21,7 +21,7 @@ def main_Fashion_betas():
         spks = []
 
         for beta in c.BETAS:
-            net = my_utils_Fashion.Net2(i, beta).to(device)
+            net = my_utils_Fashion.Net_Betas(i, beta).to(device)
             print(f"\nBeta: {beta}")
 
             output = my_utils_Fashion.training(net=net,
@@ -41,7 +41,9 @@ def main_Fashion_betas():
     np.save(f'Accuracy_vs_Sparsity/Accs_betas.npy', np.array(accs_tot)) 
     np.save(f'Accuracy_vs_Sparsity/Spks_tot_betas.npy', np.array(spks_tot))
 
-    print(f'Run time: {(en-st)/60:.2f} min\n') 
+    print(f'Run time: {(en-st)/60:.2f} min ({(en-st)/60/60:.2f}h)\n') 
+
+
 
 
 
@@ -105,4 +107,4 @@ def main_Fashion():
 
 
 if __name__ == '__main__':
-    main_Fashion_betas()
+    main_Fashion()

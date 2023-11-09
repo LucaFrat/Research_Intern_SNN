@@ -96,7 +96,7 @@ class Net(nn.Module):
         return torch.stack(spk1_rec), torch.stack(spk2_rec), torch.stack(spk_out_rec),\
                 torch.stack(mem1_rec), torch.stack(mem2_rec), torch.stack(mem_out_rec)
 
-class Net2(nn.Module):
+class Net_Betas(nn.Module):
     def __init__(self, index, beta):
         super().__init__()
 

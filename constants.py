@@ -2,13 +2,13 @@ import tonic
 import torch
 from snntorch import surrogate
 
-BETA = 0.9
-EPOCHS = 2
+BETA = 0.8
+EPOCHS = 350
 # divide the size of the original dataset by SUBSET
-SUBSET = 15
+SUBSET = 10
 
-SURR_NAMES = ['Atan', 'Sigmoid', 'FastSigm']
-SURR_SLOPES = {'Atan': [5, 12, 25], 'Sigmoid':[5, 12, 20], 'FastSigm': [5, 10, 20]}
+SURR_NAMES = ['Atan', 'FastSigm']
+SURR_SLOPES = {'Atan': [5, 12, 25], 'FastSigm': [5, 10, 20]}
 
 SLOPES_FOR_BETAS = [25, 20, 20]
 BETAS = [0.5, 0.8, 0.9, 0.93, 0.96, 0.99]
