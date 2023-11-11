@@ -2,6 +2,7 @@ import constants as c
 import numpy as np
 import my_utils_Fashion 
 import time
+import torch
 
 
 def main_Fashion_betas():

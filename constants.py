@@ -3,7 +3,7 @@ import torch
 from snntorch import surrogate
 
 BETA = 0.8
-EPOCHS = 350
+EPOCHS = 200
 # divide the size of the original dataset by SUBSET
 SUBSET = 10
 

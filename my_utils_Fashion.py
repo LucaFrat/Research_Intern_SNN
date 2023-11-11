@@ -15,7 +15,7 @@ from snntorch import utils
 from snntorch import spikegen
 import torch.nn as nn
 import matplotlib.pyplot as plt
-
+import time
 
 def set_seed_and_find_device():
     random.seed(c.SEED)
