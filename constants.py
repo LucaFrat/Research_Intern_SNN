@@ -3,12 +3,12 @@ import torch
 from snntorch import surrogate
 
 BETA = 0.8
-EPOCHS = 200
+EPOCHS = 150
 # divide the size of the original dataset by SUBSET
 SUBSET = 10
 
 SURR_NAMES = ['Atan', 'FastSigm']
-SURR_SLOPES = {'Atan': [5, 12, 25], 'FastSigm': [5, 10, 20]}
+SURR_SLOPES = {'Atan': [1, 4, 8, 20, 35], 'FastSigm': [0.3, 0.7, 2, 10, 25]}
 
 SLOPES_FOR_BETAS = [25, 20, 20]
 BETAS = [0.5, 0.8, 0.9, 0.93, 0.96, 0.99]
