@@ -2,25 +2,22 @@ import torch
 import torchvision
 import torchvision.transforms as transforms
 import torch.nn.functional as F
-import tonic
 from torch.utils.data import DataLoader
 import numpy as np
 import random
 import constants as c
 import snntorch as snn
-from snntorch import surrogate
 from snntorch import functional as SF
-from snntorch import spikeplot as splt
-from snntorch import utils
 from snntorch import spikegen
 import torch.nn as nn
-import matplotlib.pyplot as plt
-import time
+
+
 
 def set_seed_and_find_device():
     random.seed(c.SEED)
     torch.manual_seed(c.SEED)
     return torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+
 
 def get_Fashion_Dataloaders():
     data_path='./data/Fashion_MNIST'
@@ -43,7 +40,7 @@ def get_Fashion_Dataloaders():
 
 
 
-# Define NetworK: Input layer - 2 Conv+LIF layers - Output layer
+# Define NetworK: Conv -> MaxP -> LIF -> Conv -> MaxP -> LIF -> FeedF -> LIF
 class Net(nn.Module):
     def __init__(self, index, coeff):
         super().__init__()

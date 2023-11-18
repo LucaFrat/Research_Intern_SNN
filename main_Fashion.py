@@ -2,7 +2,6 @@ import constants as c
 import numpy as np
 import my_utils_Fashion 
 import time
-import torch
 
 
 def main_Fashion_betas():
@@ -43,7 +42,6 @@ def main_Fashion_betas():
     np.save(f'Accuracy_vs_Sparsity/Spks_tot_betas.npy', np.array(spks_tot))
 
     print(f'Run time: {(en-st)/60:.2f} min ({(en-st)/60/60:.2f}h)\n') 
-
 
 
 
